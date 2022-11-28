@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+<script>
+    
+/**
+ * 对 Object.defineProperty 的封装
+ * @param {*} data 
+ * @param {*} key 
+ * @param {*} val 
+ */
+function defineReactive (data, key, val) {
+  const dep = []
+  Object.defineProperty(data, key, {
+    enumerable: true,
+    configurable: true,
+    get: function () {
+      console.log('get value')
+      dep.push(window.target) // 收集依赖
+      return val
+    },
+    set: function (newVal) {
+      console.log('set value')
+      if (newVal === val) {
+        return
+      }
+      // 通知依赖
+      for (let i = 0; i < dep.length; i++) {
+        dep[i](newVal, val)
+      }
+      val = newVal
+    }
+  })
+}
+
+window.target = (newVal, oldVal) => {
+  console.log('change value', oldVal, '->', newVal)
+}
+
+const a = { name: 'default' }
+
+defineReactive(a, 'name', a.name)
+
+console.log(a.name) // 触发 getter 进行依赖收集
+// get value
+// default
+
+a.name = 'new name' // 触发 setter 进行依赖通知
+// set value
+// change value default -> new name
+
+console.log(a.name)
+// get value
+// new name
+</script>
+</body>
+</html>
